@@ -34,12 +34,15 @@ import org.apache.commons.httpclient.methods.multipart.Part;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.report.pdf.batch.PDFPostJob;
+import org.sonar.wsclient.Host;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 
 public class FileUploader {
 
   private static final Logger LOG = LoggerFactory.getLogger(PDFPostJob.class);
 
-  public static void upload(final File file, final String url, String username, String password) {
+  public static void upload(final File file, final String url, Host server) {
     PostMethod filePost = new PostMethod(url);
 
     try {
@@ -50,12 +53,14 @@ public class FileUploader {
       filePost.setRequestEntity(new MultipartRequestEntity(parts, filePost.getParams()));
 
       HttpClient client = new HttpClient();
-      if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
-        client.getParams().setAuthenticationPreemptive(true);
-        Credentials credentials = new UsernamePasswordCredentials(username, password);
-        client.getState().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), credentials);
-      }
       client.getHttpConnectionManager().getParams().setConnectionTimeout(10000);
+      if (null != server) {
+    	  if (server.getUsername() != null) {
+    		  client.getParams().setAuthenticationPreemptive(true);
+    		  org.apache.commons.httpclient.Credentials defaultcreds = new UsernamePasswordCredentials(server.getUsername(), server.getPassword());
+    		  client.getState().setCredentials(AuthScope.ANY, defaultcreds);
+    	  }
+      }
       int status = client.executeMethod(filePost);
       if (status == HttpStatus.SC_OK) {
         LOG.info("PDF uploaded.");

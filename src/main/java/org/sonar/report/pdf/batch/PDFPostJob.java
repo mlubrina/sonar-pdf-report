@@ -31,6 +31,7 @@ import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Project;
 import org.sonar.report.pdf.util.FileUploader;
+import org.sonar.wsclient.Host;
 
 public class PDFPostJob implements PostJob, CheckProject {
 
@@ -79,7 +80,9 @@ public class PDFPostJob implements PostJob, CheckProject {
 
     File pdf = new File(path);
     if (pdf.exists()) {
-      FileUploader.upload(pdf, sonarHostUrl + "/pdf_report/store", username, password);
+      //FileUploader.upload(pdf, sonarHostUrl + "/pdf_report/store", username, password);
+    	Host  server = new Host(sonarHostUrl, username, password);
+      FileUploader.upload(pdf, sonarHostUrl + "pdf_report/store", server);
     } else {
       LOG.error("PDF file not found in local filesystem. Report could not be sent to server.");
     }
